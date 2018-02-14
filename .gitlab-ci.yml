@@ -1,0 +1,18 @@
+image: tas
+
+stages:
+- build
+- test
+
+build_job:
+  stage: build
+  script: "eval `opam config env` && make analyzer.byte && test -x analyzer.byte"
+
+test_job:
+  stage: test
+  script: ./scripts-ci/run.sh
+  artifacts:
+    when: always
+    paths:
+    - result.html
+    
