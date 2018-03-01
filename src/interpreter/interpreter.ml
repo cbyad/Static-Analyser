@@ -164,11 +164,18 @@ module Interprete(D : DOMAIN) =
         (* and then filter by exit condition *)
         filter inv e false
 
-    | AST_assert e ->
+    | AST_assert e -> 
+      let rep = (filter a e false) in 
+        if not(D.is_bottom rep) then 
+          begin 
+            error ext "assertion failure" ;
+            filter a e true 
+          end
+        else a
+      
        (* not implemented *)
        (* to be sound, we return the argument unchanged *)
-       a
-          
+       
     | AST_print l ->
         (* print the current abstract environment *)
         let l' = List.map fst l in
