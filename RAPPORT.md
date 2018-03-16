@@ -13,7 +13,7 @@
 ## Ajout du support des assertions
 Principe : On analyse par filtrage sur la condition.
 On analyse la condition en supposant l'assertion fausse : 
-    si on n'obtient un ensemble non vide alors on affiche un message d'erreur, on renvoie le filtrage de la condition en la supposant vraie afin de continuer l'analyse
+    si on obtient un ensemble non vide alors on affiche un message d'erreur, on renvoie le filtrage de la condition en la supposant vraie afin de continuer l'analyse
 
 *ajout de tests  TODO
  
@@ -60,7 +60,21 @@ let eq a b =
 
 
 ## Domaine des intervalles
+*top ok
+*bottom ok
+*const  ok
+*rand
+*meet
+*join
+*subset
+*is_bottom ok
+*print`,
+*unary`,
+*binary`
+*compare
 
+
+Pour les fonctions `bwd_unary` et `bwd_binary`, une implantation approchée suffira.
 
 
 ### extension 
