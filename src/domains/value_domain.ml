@@ -27,23 +27,28 @@ module type VALUE_DOMAIN =
     (* constant: {c} *)
     val const: Z.t -> t
 
+
     (* interval: [a,b] *)
     val rand: Z.t -> Z.t -> t
 
-
     (* set-theoretic operations *)
-    val join: t -> t -> t
     val meet: t -> t -> t
-        
+
+
     (* subset inclusion *)
     val subset: t -> t -> bool
-        
+
+  
+    val join: t -> t -> t
+  
     (* emptyness testing *)
     val is_bottom: t -> bool
         
     (* print abstract element *)
     val print: Format.formatter -> t -> unit
       
+
+
         
     (* unary operation *)
     val unary: t -> int_unary_op -> t
