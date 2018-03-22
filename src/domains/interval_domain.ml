@@ -41,6 +41,7 @@ let bound_mul (a:bound) (b:bound) : bound = match a,b with
 |PINF,Int i |Int i,PINF -> if i<Z.zero then MINF else PINF
 |Int i , Int j -> Int (Z.mul i j)
 
+(* a /b *)
 let bound_div (a:bound) (b:bound) : bound =match a,b with 
 |Int c,MINF |Int c,PINF -> Int Z.zero
 |PINF,PINF -> Int Z.zero (* cas particulier!!!*)
@@ -56,6 +57,12 @@ let bound_cmp (a:bound) (b:bound) : int = match a,b with
 | PINF,_ | _,MINF -> 1
 | Int i, Int j -> Z.compare i j
 
+(*min (a,b)*)
+let bound_min (a:bound) (b:bound) :bound = match (bound_cmp a b) with |0|1-> b   |_->a
+
+(*max (a,b)*)
+let bound_max (a:bound) (b:bound) :bound = match (bound_cmp a b) with |0|1-> a   |_->b
+
 (* unrestricted set: [-∞,+∞] *)
     let top = Itv(MINF,PINF)
         
@@ -69,7 +76,6 @@ let bound_cmp (a:bound) (b:bound) : int = match a,b with
     let rand  (a:Z.t)  (b:Z.t) : t = match a,b with 
     |x,y  when  Z.compare x y >0 -> BOT
     |_->Itv(Int a, Int b)
-
 
 (* set-theoretic operations *)
  
@@ -85,15 +91,11 @@ let bound_cmp (a:bound) (b:bound) : int = match a,b with
     |Itv(a,b),Itv(c,d) when (bound_cmp a c) <=0 && (bound_cmp b d)<=0 -> Itv(c,b)
     |Itv(a,b),Itv (c,d) when (bound_cmp a c >=0) && (bound_cmp b d)>=0 -> Itv(a,d)
     |_ -> BOT
-
+    
     let join  (x:t)  (y:t) : t = match x,y with 
-    |a,b when subset a b -> b
-    |a,b when subset b a -> a 
-    |Itv(a,b),Itv(c,d) when (bound_cmp a c) <=0 && (bound_cmp b d)<=0 -> Itv(a,d)
-    |Itv(a,b),Itv (c,d) when (bound_cmp a c >=0) && (bound_cmp b d)>=0 -> Itv(c,b)
+    |Itv(a,b),Itv(c,d) -> Itv(bound_min a c ,bound_max b d )
     |_ -> BOT
-
-
+     
     (* emptyness testing *)
     let is_bottom t = t=BOT 
 
@@ -184,14 +186,104 @@ let div (x:t) (y:t) : t = match y with
     |_ -> let left = meet y (Itv( Int(Z.of_int 1) , PINF)) in 
           let rigth = meet y (Itv (MINF,Int(Z.of_int (-1)))) in
 
-(* (don't know for the moment why didn't work)
-          let res1= lift2 (fun a b c d ->Itv(min2_div a b c d , max2_div a b c d)) x left in
-          let res2= lift2 (fun a b c d ->Itv(min2_div a b c d , max2_div a b c d)) x rigth in 
-*)
           let res1= lift2 (fun a b c d ->Itv(min2_div a b d d , max2_div a b c d)) x left in
           let res2= lift2 (fun a b c d ->Itv(min2_div a b c c , max2_div a b c d)) x rigth in 
           join res1 res2
 (*---------------------------------------------------------------------------*)
+
+(*----------------------------------comparaison------------------------------*)
+let eq (x:t) (y:t) : t*t = match x ,y with 
+|Itv(a,b),Itv(c,d) -> if bound_cmp a c =0 && bound_cmp b d =0 then x,x else  meet x y , meet y x
+|BOT,a -> a,a
+|a,BOT -> a,a 
+
+let neq (x:t) (y:t) : t*t =  match x,y with 
+|Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp b c =0 -> 
+      Itv(a,b),Itv(bound_add  c (Int(Z.of_int 1 )),d)
+
+|Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp b d =0 -> 
+      Itv(a,b),Itv(c,bound_add  d (Int(Z.of_int (-1) )))
+
+|Itv(a,b),Itv(c,d) when bound_cmp c d =0 && bound_cmp d a =0 -> 
+      Itv(bound_add  a (Int(Z.of_int 1 )),b),Itv(c,d)
+     
+|Itv(a,b),Itv(c,d) when bound_cmp c d =0 && bound_cmp d b =0 -> 
+      Itv(a,bound_add  b (Int(Z.of_int (-1) ))),Itv(c,d)
+|_ -> x,y
+
+let leq (x:t) (y:t) : (t*t) =  match x,y with 
+  |Itv(a,b),Itv(c,d) when bound_cmp c d =0 -> if (bound_cmp a c )<=0 then Itv(a,bound_min b c),Itv(a,bound_min b c)
+  else BOT,BOT
+  |Itv(a,b),Itv(c,d) when bound_cmp a b =0 -> if (bound_cmp c a) <=0  then Itv(bound_max c a , d ),Itv(bound_max c a ,d)
+  else BOT,BOT
+  (*
+  |Itv(Int i,Int j),Itv(Int v, Int w) when bound_cmp (Int i) (Int j)=0 && bound_cmp (Int v) (Int w)=0->
+  if bound_cmp (Int i) (Int v) <=0 then Itv(Int i, bound_min (Int j) (Int v)),Itv(Int i, bound_min (Int j) (Int v))
+  else BOT,BOT 
+  *)
+  |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <=0 then Itv(a,bound_min b d),(Itv(bound_max a c,d))
+  else BOT,BOT
+  |_-> invalid_arg "oupsss"
+  (*TODO*)
+
+
+let geq (x:t) (y:t) : (t*t) = leq y x
+
+(*
+let lt (x:t) (y:t) : (t*t) = match x,y with 
+  |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <0 then Itv(a,bound_add (bound_min b d) (Int(Z.of_int (-1) )) ),(Itv(bound_add (bound_max a c) (Int(Z.of_int (1) )),d))
+  else BOT,BOT
+  |_ -> BOT,BOT
+  *)
+
+
+let lt (x:t) (y:t) : (t*t) =  match x,y with 
+  |Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp c d =0 ->
+    if (bound_cmp c a) !=0 
+      then BOT,BOT
+      else Itv(a,b),Itv(a,b)
+  |Itv(a,b),Itv(c,d) when bound_cmp a b =0 ->
+    if (bound_cmp c a) <=0 
+      then Itv(bound_add a (Int(Z.one)), d),Itv(bound_add a (Int(Z.one)), d)
+      else BOT,BOT
+  |Itv(a,b),Itv(c,d) when bound_cmp c d =0 ->
+    if (bound_cmp a c )<0
+      then Itv(a, bound_sub c (Int(Z.one))) , Itv(a, bound_sub c (Int(Z.one)))
+      else BOT,BOT
+
+  (*
+  |Itv(Int i,Int j),Itv(Int v, Int w) when bound_cmp (Int i) (Int j)=0 && bound_cmp (Int v) (Int w)=0->
+  if bound_cmp (Int i) (Int v) <=0 then Itv(Int i, bound_min (Int j) (Int v)),Itv(Int i, bound_min (Int j) (Int v))
+  else BOT,BOT 
+  *)
+  |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <0 then Itv(bound_max (bound_add a (Int(Z.one))) c, bound_min b d ), 
+                                                  Itv(bound_max a c,bound_min (bound_sub d (Int(Z.one))) b)  
+  
+  (* Itv(a,bound_add (Int(Z.minus_one)) (bound_min b d)),(Itv( bound_add (Int(Z.one)) (bound_max a c),d))  *)
+  else BOT,BOT
+  |_-> invalid_arg "oupsss"
+
+     
+    
+
+
+(*  rudy
+let lt (x:t) (y:t) : (t*t) = match x,y with 
+| Itv(a,b),Itv(c,d) when bound_cmp c a <= 0 && bound_cmp b d >= 0  ->
+    Itv(a,bound_add  d (Int(Z.of_int (-1) )) ),Itv(bound_add  a (Int(Z.of_int 1 )), d)
+| Itv(a,b),Itv(c,d) when bound_cmp b d >= 0 ->
+    Itv(a,bound_add  d (Int(Z.of_int (-1) )) ), Itv(c,d)
+| Itv(a,b),Itv(c,d) when bound_cmp c a <= 0 ->
+    Itv(a,b),Itv(bound_add  a (Int(Z.of_int 1 )), d)
+
+|_-> x,y 
+*)
+
+
+
+let gt (x:t) (y:t) : (t*t) = lt y x
+
+(*---------------------------------------------------------------------------*)    
             
      (* unary operation *)
     let unary (x:t) (op:int_unary_op) :t = match op with
@@ -217,8 +309,13 @@ let div (x:t) (y:t) : t = match y with
        a safe, but not precise implementation, would be:
        compare x y op = (x,y)
      *)
-    let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = BOT,BOT
-
+    let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
+    |AST_EQUAL -> eq x y 
+    |AST_LESS_EQUAL -> leq x y
+    |AST_LESS -> lt x y 
+    |AST_GREATER_EQUAL -> geq x y 
+    |AST_GREATER -> gt x y
+    |AST_NOT_EQUAL -> neq x y  
 
     (* 
        the following, more advanced operations are useful to handle
@@ -259,7 +356,7 @@ let div (x:t) (y:t) : t = match y with
       (* r=x-y => x=y+r and y=x-r *)
       meet x (add y r), meet y (sub x r)
 
-      |_ -> BOT,BOT  (*todo just to silent error *)
+      |_ -> x,y  (*todo just to silent error *)
 
   
 end : VALUE_DOMAIN)
