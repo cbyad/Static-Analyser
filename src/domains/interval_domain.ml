@@ -185,7 +185,6 @@ let div (x:t) (y:t) : t = match y with
     |Itv(Int i,_) when i=Z.zero ->BOT
     |_ -> let left = meet y (Itv( Int(Z.of_int 1) , PINF)) in 
           let rigth = meet y (Itv (MINF,Int(Z.of_int (-1)))) in
-
           let res1= lift2 (fun a b c d ->Itv(min2_div a b d d , max2_div a b c d)) x left in
           let res2= lift2 (fun a b c d ->Itv(min2_div a b c c , max2_div a b c d)) x rigth in 
           join res1 res2
@@ -194,49 +193,37 @@ let div (x:t) (y:t) : t = match y with
 (*----------------------------------comparaison------------------------------*)
 let eq (x:t) (y:t) : t*t = match x ,y with 
 |Itv(a,b),Itv(c,d) -> if bound_cmp a c =0 && bound_cmp b d =0 then x,x else  meet x y , meet y x
-|BOT,a -> a,a
-|a,BOT -> a,a 
+|BOT,a -> a,a |a,BOT -> a,a 
 
 let neq (x:t) (y:t) : t*t =  match x,y with 
 |Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp b c =0 -> 
-      Itv(a,b),Itv(bound_add  c (Int(Z.of_int 1 )),d)
+      Itv(a,b),Itv(bound_add  c (Int(Z.one)),d)
 
 |Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp b d =0 -> 
-      Itv(a,b),Itv(c,bound_add  d (Int(Z.of_int (-1) )))
+      Itv(a,b),Itv(c,bound_add  d (Int(Z.minus_one)))
 
 |Itv(a,b),Itv(c,d) when bound_cmp c d =0 && bound_cmp d a =0 -> 
-      Itv(bound_add  a (Int(Z.of_int 1 )),b),Itv(c,d)
+      Itv(bound_add  a (Int(Z.one)),b),Itv(c,d)
      
 |Itv(a,b),Itv(c,d) when bound_cmp c d =0 && bound_cmp d b =0 -> 
-      Itv(a,bound_add  b (Int(Z.of_int (-1) ))),Itv(c,d)
+      Itv(a,bound_add  b (Int(Z.minus_one ))),Itv(c,d)
 |_ -> x,y
 
 let leq (x:t) (y:t) : (t*t) =  match x,y with 
   |Itv(a,b),Itv(c,d) when bound_cmp c d =0 -> if (bound_cmp a c )<=0 then Itv(a,bound_min b c),Itv(a,bound_min b c)
   else BOT,BOT
-  |Itv(a,b),Itv(c,d) when bound_cmp a b =0 -> if (bound_cmp c a) <=0  then Itv(bound_max c a , d ),Itv(bound_max c a ,d)
+  |Itv(a,b),Itv(c,d) when bound_cmp a b =0 -> if (bound_cmp c a) <=0  then Itv(bound_max c a,d),Itv(bound_max c a ,d)
   else BOT,BOT
-  (*
-  |Itv(Int i,Int j),Itv(Int v, Int w) when bound_cmp (Int i) (Int j)=0 && bound_cmp (Int v) (Int w)=0->
-  if bound_cmp (Int i) (Int v) <=0 then Itv(Int i, bound_min (Int j) (Int v)),Itv(Int i, bound_min (Int j) (Int v))
-  else BOT,BOT 
-  *)
   |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <=0 then Itv(a,bound_min b d),(Itv(bound_max a c,d))
   else BOT,BOT
-  |_-> invalid_arg "oupsss"
-  (*TODO*)
+  |_-> x,y
 
-
-let geq (x:t) (y:t) : (t*t) = leq y x
-
-(*
 let lt (x:t) (y:t) : (t*t) = match x,y with 
   |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <0 then Itv(a,bound_add (bound_min b d) (Int(Z.of_int (-1) )) ),(Itv(bound_add (bound_max a c) (Int(Z.of_int (1) )),d))
   else BOT,BOT
-  |_ -> BOT,BOT
-  *)
+  |_ -> x,y
 
-
+(*
 let lt (x:t) (y:t) : (t*t) =  match x,y with 
   |Itv(a,b),Itv(c,d) when bound_cmp a b =0 && bound_cmp c d =0 ->
     if (bound_cmp c a) !=0 
@@ -251,21 +238,11 @@ let lt (x:t) (y:t) : (t*t) =  match x,y with
       then Itv(a, bound_sub c (Int(Z.one))) , Itv(a, bound_sub c (Int(Z.one)))
       else BOT,BOT
 
-  (*
-  |Itv(Int i,Int j),Itv(Int v, Int w) when bound_cmp (Int i) (Int j)=0 && bound_cmp (Int v) (Int w)=0->
-  if bound_cmp (Int i) (Int v) <=0 then Itv(Int i, bound_min (Int j) (Int v)),Itv(Int i, bound_min (Int j) (Int v))
-  else BOT,BOT 
-  *)
   |Itv(a,b),Itv(c,d) -> if (bound_cmp a d) <0 then Itv(bound_max (bound_add a (Int(Z.one))) c, bound_min b d ), 
                                                   Itv(bound_max a c,bound_min (bound_sub d (Int(Z.one))) b)  
-  
-  (* Itv(a,bound_add (Int(Z.minus_one)) (bound_min b d)),(Itv( bound_add (Int(Z.one)) (bound_max a c),d))  *)
-  else BOT,BOT
+  else x,y
   |_-> invalid_arg "oupsss"
-
-     
-    
-
+*)
 
 (*  rudy
 let lt (x:t) (y:t) : (t*t) = match x,y with 
@@ -278,10 +255,6 @@ let lt (x:t) (y:t) : (t*t) = match x,y with
 
 |_-> x,y 
 *)
-
-
-
-let gt (x:t) (y:t) : (t*t) = lt y x
 
 (*---------------------------------------------------------------------------*)    
             
@@ -300,53 +273,18 @@ let gt (x:t) (y:t) : (t*t) = lt y x
     (* widening, for loops *)
     let widen = join (*todo just to silent error *)
 
-(* comparison *)
-    (* [compare x y op] returns (x',y') where
-       - x' abstracts the set of v  in x such that v op v' is true for some v' in y
-       - y' abstracts the set of v' in y such that v op v' is true for some v  in x
-       i.e., we filter the abstract values x and y knowing that the test is true
-
-       a safe, but not precise implementation, would be:
-       compare x y op = (x,y)
-     *)
     let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
     |AST_EQUAL -> eq x y 
+    |AST_NOT_EQUAL -> neq x y  
     |AST_LESS_EQUAL -> leq x y
     |AST_LESS -> lt x y 
-    |AST_GREATER_EQUAL -> geq x y 
-    |AST_GREATER -> gt x y
-    |AST_NOT_EQUAL -> neq x y  
+    |AST_GREATER_EQUAL -> let y',x' = leq y x in x',y'
+    |AST_GREATER -> let y',x' = lt y x in x',y'
 
-    (* 
-       the following, more advanced operations are useful to handle
-       complex tests more precisely
-     *)
-
-        
-    (* backards unary operation *)
-    (* [bwd_unary x op r] returns x':
-       - x' abstracts the set of v in x such as op v is in r
-       i.e., we fiter the abstract values x knowing the result r of applying
-       the operation on x
-
-       it is safe, as first approximation, to implement it as the identity:
-       let bwd_unary x _ _ = x
-     *)
     let bwd_unary (x:t)  (op:int_unary_op)  (r:t) : t = match op with 
     |AST_UNARY_PLUS ->  meet x r
     |AST_UNARY_MINUS-> meet (neg x ) r
 
-  
-     (* backward binary operation *)
-     (* [bwd_binary x y op r] returns (x',y') where
-       - x' abstracts the set of v  in x such that v op v' is in r for some v' in y
-       - y' abstracts the set of v' in y such that v op v' is in r for some v  in x
-       i.e., we filter the abstract values x and y knowing that, after
-       applying the operation op, the result is in r
-
-       it is safe, as first approximation, to implement it as the identity:
-       let bwd_binay x y _ _ = (x,y)
-      *)
     let bwd_binary  (x:t)  (y:t) (op:int_binary_op)  (r:t) : (t * t)= match op with 
       | AST_PLUS ->
       (* r=x+y => x=r-y and y=r-x *)      
@@ -358,6 +296,4 @@ let gt (x:t) (y:t) : (t*t) = lt y x
 
       |_ -> x,y  (*todo just to silent error *)
 
-  
 end : VALUE_DOMAIN)
-
