@@ -150,7 +150,8 @@ module Interprete(D : DOMAIN) =
     | AST_while (e,s) ->
         (* simple fixpoint *)
         let rec fix (f:t -> t) (x:t) : t = 
-          let fx = f x in
+          let fx = (D.widen x  (f x) ) in
+            
           if D.subset fx x then fx
           else fix f fx
         in
@@ -164,18 +165,15 @@ module Interprete(D : DOMAIN) =
         (* and then filter by exit condition *)
         filter inv e false
 
-    | AST_assert e -> 
+    | AST_assert e ->  (*done*)
       let rep = (filter a e false) in 
         if not(D.is_bottom rep) then 
           begin 
             error ext "assertion failure" ;
             filter a e true 
           end
-        else a
+        else a 
       
-       (* not implemented *)
-       (* to be sound, we return the argument unchanged *)
-       
     | AST_print l ->
         (* print the current abstract environment *)
         let l' = List.map fst l in

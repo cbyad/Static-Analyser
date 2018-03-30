@@ -75,7 +75,7 @@ module Constants = (struct
   let sub = lift2 Z.sub
 
   let mul a b = 
-  (* lift2 Z.mul a b*)
+  (* lift2 Z.mul a b*) (*done*)
       if b = Cst Z.zero || a=Cst Z.zero then Cst Z.zero 
         else lift2 Z.mul a b
 
@@ -108,10 +108,8 @@ module Constants = (struct
     (*a,b*) 
     match a,b with 
     |Cst x , Cst y when x=y -> a,a
-    |BOT,Cst x -> b,b
-    |Cst x , BOT -> a,a
-    |TOP, Cst x -> b,b
-    |Cst x , TOP -> a,a
+    |Cst x , BOT |Cst x , TOP -> a,a
+    |BOT,Cst x |TOP, Cst x -> b,b
     |_,_ -> a,b 
     
 

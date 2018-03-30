@@ -27,7 +27,8 @@ __lifter :__ passer du monde des entiers vers notre type t
 ** neq
 Nous les avons implémenté assez naturelement. Rien de spécial à préciser à ce niveau.
 ## Domaine des intervalles
-L'implémentation du domaine des intervalles à été moins facile surtout sur certaines règles qui paraissent intuitives mais qui lorsqu'elles ne sont pas realisées avec les règles d'abstraction données dans en cours echouent les tests. Un exemple est __(`-∞`*0 = 0*`+∞`=0)__ 
+L'implémentation du domaine des intervalles à été moins facile surtout sur certaines règles qui paraissent intuitives mais qui lorsqu'elles ne sont pas realisées avec les règles d'abstraction données en cours echouent les tests. Un exemple est __(`-∞` * 0 = 0 * `+∞` =0)__ 
+Nous avons ajouté un test : celui du cours sur la division des intervalles __[5,10]/#[-1,1]__ , et celui-ci nous a permis de couvrir plus de cas que prévu dans notre implémentation.
 
 Fonctions implémentées : top, bottom, const, rand, meet, join, subset
 is_bottom, print, unary, binary, compare, neg, add, sub, mul, div 
@@ -42,9 +43,9 @@ La version fournie etant pas precise nous commencons l'analyse par implementer l
 ## Produit réduit
 Vue la difficulté de l'implantation de l'analyse des boucles nous avons decidé de faire le produit reduit qui parait plus simple avant de revenir plus tard sur les boucles.
 
-* Nous commencons par créer les 4 fichiers necessaires et ecrire le domaine des parité
+* Nous commencons par créer les 4 fichiers necessaires et ecrire le domaine des parités
 
-* ecrire la reduction des des intervals et des parité
+* ecrire la reduction des intervals et des parités
 
 Enfin on connecte le tout dans le main en ajoutant un nouveau module ParityIntervalAnalysis  
 
