@@ -13,8 +13,10 @@ open Value_domain
 module Intervals = (struct
 
 (* Z U {+/-∞} *)
+
 type bound = |Int of Z.t |PINF |MINF
-type t  = Itv of bound*bound |BOT
+type t  = Itv of bound*bound |BOT 
+
 
 (* -a *)
 let bound_neg (a:bound) : bound = match a with
@@ -262,6 +264,7 @@ let gt a b = match a, b with
         Itv((if bound_cmp a c <=0 then a else MINF),(if bound_cmp b d >=0 then b else PINF))
 
 
+
     let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
     |AST_EQUAL -> eq x y 
     |AST_NOT_EQUAL -> neq x y  
@@ -296,5 +299,14 @@ let gt a b = match a, b with
       (if contains_zero x && contains_zero r then y else meet y (mul r x))
       (* this is sound, but not precise *)
   
+
+(****************************)
+ let get_value (x:t) (pos:int) : int = match x with 
+      |Itv(a,b)-> (let res = if pos=1 then a else b in 
+          match res with 
+          |Int c -> Z.to_int c
+          |_ -> invalid_arg "not an int")
+  |_ -> invalid_arg "not an interval" 
+(****************************)
         
 end : VALUE_DOMAIN)

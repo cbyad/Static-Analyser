@@ -12,6 +12,8 @@ open Value_domain
   
 module Parity = (struct
 
+
+
   (* types *)
 
   (* type of abstract values *)
@@ -23,6 +25,8 @@ module Parity = (struct
     | TOP -> TOP
     | Odd -> Odd
     | Even -> Even
+
+
 
   (* lift binary arithmetic operations *)
   let lift2 f x y =
@@ -49,7 +53,6 @@ module Parity = (struct
     else BOT
 
   (* arithmetic operations *)
-
   let neg (x:t) :t = lift1 x (*idem with x *)
 
   let parity_add_or_sub (x:t) (y:t) :t = match x,y with
@@ -106,10 +109,10 @@ module Parity = (struct
 
   (* prints abstract element *)
   let print fmt x = match x with
-  | BOT -> Format.fprintf fmt "⊥"
-  | TOP -> Format.fprintf fmt "⊤"
   | Odd -> Format.fprintf fmt "odd"
   | Even -> Format.fprintf fmt "even" 
+  | BOT -> Format.fprintf fmt "⊥"
+  | TOP -> Format.fprintf fmt "⊤"
 
   let eq (x:t) (y:t) :t*t = match x,y with 
   |Odd,Odd | Even,Even -> x,y
@@ -118,16 +121,18 @@ module Parity = (struct
   |Even,Odd| Odd,Even -> TOP,TOP  
   |_,_ -> x,y 
     
-  let neq (x:t) (y:t) :t*t = x,y
-    (*
-  |Odd,Odd | Even,Even -> x,y
+  let neq (x:t) (y:t) :t*t =x,y 
+  (* match x,y with 
+  |Odd,Odd -> Even,Odd 
+  | Even,Even -> x,y
   |Even , BOT |Even , TOP | Odd,BOT | Odd,TOP-> x,x
   |BOT,Even |TOP, Even |BOT,Odd |TOP,Odd -> y,y
   |Even,Odd| Odd,Even -> TOP,TOP  
   |_,_ -> x,y 
-*)
-  let geq a b = BOT,BOT
-  let gt a b = BOT,BOT
+  *)
+
+  let geq x y = x,y
+  let gt x y = x,y 
   (* operator dispatch *)
         
   let unary x op = match op with
@@ -172,5 +177,15 @@ module Parity = (struct
   | AST_DIVIDE ->
       (* this is sound, but not precise *)
       x, y
-        
+        (****************************)
+
+
+ let get_value (x:t) (wtf:int) : int  =match x with 
+  |BOT -> -1
+  |TOP -> 2018 (*simulate max value*)
+  |Odd -> 1
+  |Even -> 2
+
+ (****************************)
+
 end : VALUE_DOMAIN)

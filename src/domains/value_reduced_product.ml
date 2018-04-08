@@ -3,76 +3,53 @@ open Value_reduction
 open Value_domain
 
 module ReducedProduct(R : VALUE_REDUCTION) =
-(struct
-module A = R.A
-module B = R.B
-type t = R.t (* A.t * B.t *)
+  (struct
+    module A = R.A
+    module B = R.B
+    type t = R.t (* A.t * B.t *)
 
-let top = R.A.top,R.B.top
-(* bottom value *)
-let bottom = R.A.top,R.B.top
-(* constant *)
-let const c = R.A.top,R.B.top
+    let top = A.top,B.top
+    let bottom = A.bottom,B.bottom
+    let const c = R.reduce (A.const c , B.const c) 
+    let rand x y =  (A.rand x y ,B.rand x y )
+    (* arithmetic operations *)
 
-let rand x y = R.A.top,R.B.top
-(* arithmetic operations *)
-let neg (x : t) : t = R.A.top,R.B.top 
-let add x y = R.A.top,R.B.top
-let sub x y = R.A.top,R.B.top
-let mul x y = R.A.top,R.B.top
-let div x y = R.A.top,R.B.top
-(* set-theoretic operations *)
-let join x y = R.A.top,R.B.top
-let meet x y = R.A.top,R.B.top
-(* subset inclusion of concretizations *)
-let subset (x : t) (y : t) : bool = false
-(* no need for a widening as the domain has finite height; we use the join *)
-let widen x y = join x y
-(* comparison operations (filters) *)
-let eq a b = (R.A.top,R.B.top),(R.A.top,R.B.top)
-let neq a b = (R.A.top,R.B.top),(R.A.top,R.B.top)
-let leq a b = (R.A.top,R.B.top),(R.A.top,R.B.top)
-let geq a b = (R.A.top,R.B.top),(R.A.top,R.B.top)
-let gt a b = (R.A.top,R.B.top),(R.A.top,R.B.top)
-(* check the emptyness of the concretization *)
-let is_bottom a = false
-(* prints abstract element *)
-let print fmt x = match x with
-| a,b -> A.print fmt a
-(* operator dispatch *)
-let unary x op = match op with
-| AST_UNARY_PLUS  -> x
-| AST_UNARY_MINUS -> neg x
-let binary x y op = match op with
-| AST_PLUS     -> add x y
-| AST_MINUS    -> sub x y
-| AST_MULTIPLY -> mul x y
-| AST_DIVIDE   -> div x y
-let compare x y op = match op with
-| AST_EQUAL         -> eq x y
-| AST_NOT_EQUAL     -> neq x y
-| AST_GREATER_EQUAL -> geq x y
-| AST_GREATER       -> gt x y
-| AST_LESS_EQUAL    -> leq x y (*let y',x' = geq y x in x',y'*)
-| AST_LESS          -> let y',x' = gt y x in x',y'
-        
-let bwd_unary x op r = match op with
-| AST_UNARY_PLUS  -> meet x r
-| AST_UNARY_MINUS -> meet x (neg r)
-let bwd_binary x y op r = match op with
-| AST_PLUS ->
-    (* r=x+y => x=r-y and y=r-x *)      
-    meet x (sub r y), meet y (sub r x)
-| AST_MINUS ->
-    (* r=x-y => x=y+r and y=x-r *)
-    meet x (add y r), meet y (sub x r)
-| AST_MULTIPLY ->
-    (* r=x*y => (x=r/y or y=r=0) and (y=r/x or x=r=0)  *)
-    let contains_zero o = subset (const Z.zero) o in
-    (if contains_zero y && contains_zero r then x else meet x (div r y)),
-    (if contains_zero x && contains_zero r then y else meet y (div r x))
-| AST_DIVIDE ->
-    (* this is sound, but not precise *)
-    x, y
+    (* set-theoretic operations *)
+    let join (x:t) (y:t) : t = R.reduce (A.join (fst x)(fst y),B.join (snd x)(snd y) )
+    let meet (x:t) (y:t) : t = R.reduce (A.meet (fst x) (fst y) ,B.meet (snd x)(snd y))
+    let widen (x:t) (y:t) : t =  (A.widen (fst x ) (fst y) ,B.widen (snd x)(snd y))
+    let subset (x:t) (y:t) : bool = (A.subset (fst x) (fst y )) && (B.subset (snd x) (snd y))
+  
+    (* comparison operations (filters) *)
 
-end : VALUE_DOMAIN)
+    (* check the emptyness of the concretization *)
+    let is_bottom x = A.is_bottom (fst x) && B.is_bottom (snd x) 
+
+    (* prints abstract element *)
+
+    let print fmt x =
+        begin
+            A.print fmt (fst x);
+            Format.fprintf fmt " ∧ ";
+            B.print fmt (snd x);
+        end 
+
+    (* operator dispatch *)
+    let unary x op =R.reduce(A.unary (fst x) op ,B.unary (snd x) op)
+    let binary x y op =R.reduce( A.binary (fst x) (fst y) op ,B.binary (snd x) (snd y) op)
+
+    let compare a b op =
+      match (A.compare (fst a) (fst b) op), (B.compare (snd a) (snd b) op) with 
+      | (x,y), (z, w)-> (R.reduce (x, z), R.reduce (y, w))
+                      
+    let bwd_unary a op r = R.reduce (A.bwd_unary (fst a) op (fst r), B.bwd_unary (snd a) op (snd r))
+
+    let bwd_binary a b op r =
+      match (A.bwd_binary (fst a) (fst b) op (fst r), B.bwd_binary (snd a) (snd b) op (snd r)) with 
+      | (x, y), (z, w) -> (R.reduce (x, z), R.reduce (y, w)) 
+
+    (****************************)
+    let get_value x y = invalid_arg "don't use just to write something"
+    (****************************)
+
+  end : VALUE_DOMAIN)
