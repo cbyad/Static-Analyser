@@ -17,7 +17,7 @@ module Constants = (struct
   
   (* types *)
   (* ***** *)
-
+  type bound = Nothing
 
   (* type of abstract values *)
   type t =
@@ -49,7 +49,10 @@ module Constants = (struct
   (* interface implementation *)
   (* ************************ *)
 
-
+(****************************)
+ let get_value x y = invalid_arg "don't use just to write something"
+(****************************)
+ 
   (* unrestricted value *)
   let top = TOP
 
@@ -99,7 +102,6 @@ module Constants = (struct
 
   (* no need for a widening as the domain has finite height; we use the join *)
   let widen = join
-
 
   (* comparison operations (filters) *)
 
