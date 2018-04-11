@@ -105,7 +105,16 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
 
     (* print abstract element *)
     (*    [a;b] [-∞;+∞] [a;+∞] [-∞;b]  *)
+ let equal x y = x=y
 
+
+(*useful in dijonstive domain*)
+  let less_than x y = match x, y with
+  | Int a, Int b -> a < b
+  | MINF, Int b -> true | MINF, PINF -> true| Int a, PINF -> true
+  | _ -> false             
+                   
+  let greater_than x y = not (less_than x y || equal x y)
 
     let print fmt x = match x with
     |BOT -> Format.fprintf fmt "⊥"
@@ -115,13 +124,17 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
                 |Int i ,PINF -> Format.fprintf fmt "[%s;+∞]" (Z.to_string i)
                 |Int i ,Int j -> Format.fprintf fmt "[%s;%s]" (Z.to_string i) (Z.to_string j)
                 |_-> ()
+  let string_of_interval_value x = match x with
+  | MINF -> "-∞"
+  | PINF -> "+∞"
+  | Int a -> Z.to_string a
 
-(*useful in dijonstive domain*)
-  let less_than x y = match x, y with
-  | Int a, Int b -> a < b
-  | MINF, Int b -> true | MINF, PINF -> true| Int a, PINF -> true
-  | _ -> false             
-                        
+  let string_of_interval x = match x with
+    | Itv(a, b) when not (greater_than a b) ->
+        "[" ^ (string_of_interval_value a) ^ ";" ^
+                          (string_of_interval_value b) ^ "]"
+    | _ -> "⊥"
+     
 (* extension of f by f (BOT) = BOT *)
 let lift1 f x = match x with
 | Itv (a,b) -> f a b

@@ -65,4 +65,5 @@ Enfin on connecte le tout avec un foncteur générique dans le main en ajoutant 
 Nous avons decidé d'implementer le domaine des disjonctions d'intervalles.
 Nous avons par l'intermediaire de monsieur __[A. Miné]__ qu'il avait une astuce OCaml pour ouvrir les domaines a l'exterieur. Cependant Nous avons pas changé notre strategie dans le produit reduit (pour le temps passé dessus) mais nous le ferons ici . Pour eviter de dupliquer les travaux deja fait dans les intervalles.
 
-Nous avons fais toute les fonction mais n'avons pas eu le temps d'introduire une borne de test pour tester .
+Ajout d'une banque de test
+et passe tous les tests
