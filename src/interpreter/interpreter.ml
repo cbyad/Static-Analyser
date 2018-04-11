@@ -23,6 +23,12 @@ open Domain
 (* for debugging *)
 let trace = ref false
 
+(* for widening delay *)
+let widen_delay = ref (3)  (*default value*)
+
+(* for unrolling *)
+let loop_unroll = ref (3)  (*default value*)
+
 
 
 (* utilities *)
@@ -146,14 +152,15 @@ module Interprete(D : DOMAIN) =
         let f = filter a e false in
         (* then join *)
         D.join t f
-          
-    | AST_while (e,s) ->
+    
+   
+     | AST_while (e,s) ->
         (* simple fixpoint *)
-        let rec fix (f:t -> t) (x:t) : t = 
-          let fx = (D.widen x  (f x) ) in
-            
-          if D.subset fx x then fx
-          else fix f fx
+        let rec fix (f:t -> t) (x:t) (wid_delay:int): t = 
+            let after = (f x ) in 
+            let fx = (if  wid_delay<=0 then D.widen x after else D.join x after)  in
+            if D.subset fx x then after
+            else fix f fx ( max (wid_delay-1) 0 )
         in
         (* function to accumulate one more loop iteration:
            F(X(n+1)) = X(0) U body(F(X(n))
@@ -161,9 +168,54 @@ module Interprete(D : DOMAIN) =
          *)        
         let f x = D.join a (eval_stat (filter x e true) s) in
         (* compute fixpoint from the initial state (i.e., a loop invariant) *)
-        let inv = fix f a in
+        let inv = fix f a !widen_delay  in
+      
         (* and then filter by exit condition *)
-        filter inv e false
+         D.join (filter a e false )(filter inv e false) 
+
+
+(*
+| AST_while (e,s) ->
+        (* simple fixpoint *)
+        let rec fix (f:t -> t) (x:t) : t = 
+            let after = (f x ) in 
+            let fx =  D.widen x after in
+            if D.subset fx x then after
+            else fix f fx 
+        in
+        (* function to accumulate one more loop iteration:
+           F(X(n+1)) = X(0) U body(F(X(n))
+           we apply the loop body and add back the initial abstract state
+         *)        
+        let f x = D.join a (eval_stat (filter x e true) s) in
+        (* compute fixpoint from the initial state (i.e., a loop invariant) *)
+        let inv = fix f a   in
+
+        (* and then filter by exit condition *)
+         D.join (filter a e false )(filter inv e false) 
+*)
+   
+(*
+  |AST_while (e,s) ->
+
+           let rec unroll (v:t) (c:int) : t =
+             if (c = (!loop_unroll)) then v
+             else unroll (eval_stat (filter v e true) s) (c+1) in
+           (* fixpoint *)
+           let rec fixDelay delay (f:t -> t) (x:t) : t =
+             let fx = if !widen_delay >= 0 && delay < !widen_delay then f x else D.widen x (f x) in
+             if D.subset fx x then fx
+             else fixDelay (delay+1) f fx
+           in
+           
+           let f2 a_unroll x = D.join a_unroll (eval_stat (filter x e true) s) in
+           
+           let a_unroll =  if !loop_unroll >= 0  then unroll a 0 else a in
+           let inv = fixDelay 0 (if !loop_unroll >= 0 then f2 a_unroll else f2 a) a_unroll in 
+
+            D.join (filter a e false )(filter inv e false)
+*)
+
 
     | AST_assert e ->  (*done*)
       let rep = (filter a e false) in 

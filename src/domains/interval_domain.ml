@@ -87,11 +87,11 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
     |_,BOT -> false
     |Itv (a,b), Itv (c,d) -> bound_cmp a c >=0 && bound_cmp b d <= 0
 
-  let meet a b = match a,b with
-  | Itv (a, b), Itv (c, d) -> 
-    if (bound_cmp (bound_max a c) (bound_min b d)) = 1 then BOT
-    else Itv(bound_max a c, bound_min b d)
-  | _ -> BOT
+    let meet a b = match a,b with
+    |Itv (a, b), Itv (c, d) -> 
+      if (bound_cmp (bound_max a c) (bound_min b d)) = 1 then BOT
+      else Itv(bound_max a c, bound_min b d)
+    | _ -> BOT
 
     let join  (x:t)  (y:t) : t = match x,y with 
     |Itv(a,b),Itv(c,d) -> Itv(bound_min a c ,bound_max b d )
@@ -110,8 +110,7 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
                 |Int i ,PINF -> Format.fprintf fmt "[%s;+∞]" (Z.to_string i)
                 |Int i ,Int j -> Format.fprintf fmt "[%s;%s]" (Z.to_string i) (Z.to_string j)
                 |_-> ()
-
-         
+                        
 (* extension of f by f (BOT) = BOT *)
 let lift1 f x = match x with
 | Itv (a,b) -> f a b
@@ -230,14 +229,13 @@ let leq (p:t) (m:t) : (t*t) =  match p,m with
   | _->top,top
 
 let gt a b = match a, b with
-  | Itv(w,x), Itv(y,z) -> 
-      (match x, y with 
-      | Int i, Int j -> 
-        if (bound_cmp w y = 1) &&  (bound_cmp x z = 1) then a,b
-        else 
-          Itv(Int(Z.add j Z.one), bound_max x y),Itv(bound_min x y,Int(Z.sub i Z.one))
-      | _ -> BOT, BOT)
-  | _,_-> BOT, BOT
+  | Itv(w,x), Itv(y,z) -> (match x, y with 
+                          |Int i, Int j -> if (bound_cmp w y = 1) &&  (bound_cmp x z = 1) then a,b
+                                          else 
+                                          Itv(Int(Z.add j Z.one), bound_max x y),
+                                          Itv(bound_min x y,Int(Z.sub i Z.one))
+                          | _ -> a, b)
+  | _,_-> a,b
 
 (*---------------------------------------------------------------------------*)    
             
@@ -262,8 +260,7 @@ let gt a b = match a, b with
     (* widening, for loops *)
     let widen (x:t) (y:t) :t= match x,y with 
     |BOT,i | i,BOT -> i
-    |Itv(a,b),Itv(c,d)->
-        Itv((if bound_cmp a c <=0 then a else MINF),(if bound_cmp b d >=0 then b else PINF))
+    |Itv(a,b),Itv(c,d)->Itv((if bound_cmp a c <=0 then a else MINF),(if bound_cmp b d >=0 then b else PINF))
 
     let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
     |AST_EQUAL -> eq x y 
@@ -309,7 +306,4 @@ let gt a b = match a, b with
   |_ -> invalid_arg "interval ?? :-(" 
 (****************************)
 
-
-
-        
-end )
+end : VALUE_DOMAIN)

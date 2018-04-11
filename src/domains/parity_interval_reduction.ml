@@ -30,7 +30,6 @@ module ParityIntervalsReduction =(struct
     
             let a' = if (is_a_part_of a parity) then a else (Z.add a Z.one)  in
             let b' = if (is_a_part_of b parity) then b else (Z.sub b Z.one)  in 
-
             if (Z.gt a' b') then A.bottom,B.bottom 
             else if (Z.equal a' b') then 
                 let new_parity = if is_even a then A.const (Z.of_int 2) else A.const (Z.one) in

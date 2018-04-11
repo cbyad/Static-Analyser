@@ -192,4 +192,4 @@ module Parity = (struct
 
 
 
-end )
+end : VALUE_DOMAIN)
