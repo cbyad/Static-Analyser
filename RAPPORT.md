@@ -39,6 +39,14 @@ Fonctions implémentées : top, bottom, const, rand, meet, join, subset,is_botto
  __widen : une premiere approche approximative mais sûre en utilisant l'union. Nous l'implémenterons plus precisement dans l'analyse des bloucles__
 ## Analyse des boucles
 La version fournie étant pas precise nous commencons l'analyse par implementer la fonction d'élargissement dans le domaine des intervalles.
+cette implantation suit l'algo decrit dans le cours . (sans modification)
+
+Par contre il a fallu modifier le AST_while en incluant cette fonction mais pas que. en utilisant le retardement avant de faire l'elargissement et en deroulant la boucle.
+Suivre exactement ce qui a eté mis dans le cours n'a pas vraiment aidé pour l'implementation mais juste pour avoir la moitié des tests positifs au debut.
+
+Tous les tests passent. 
+
+
 
 ## Produit réduit
 Vue la difficulté de l'implantation de l'analyse des boucles nous avons decidé de faire le produit réduit qui parait plus simple avant de revenir plus tard sur les boucles.
@@ -54,3 +62,7 @@ Vue la difficulté de l'implantation de l'analyse des boucles nous avons decidé
 
 Enfin on connecte le tout avec un foncteur générique dans le main en ajoutant un nouveau module ParityIntervalAnalysis  
 # Extension 
+Nous avons decidé d'implementer le domaine des disjonctions d'intervalles.
+Nous avons par l'intermediaire de monsieur __[A. Miné]__ qu'il avait une astuce OCaml pour ouvrir les domaines a l'exterieur. Cependant Nous avons pas changé notre strategie dans le produit reduit (pour le temps passé dessus) mais nous le ferons ici . Pour eviter de dupliquer les travaux deja fait dans les intervalles.
+
+Nous avons fais toute les fonction mais n'avons pas eu le temps d'introduire une borne de test pour tester .

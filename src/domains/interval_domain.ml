@@ -34,6 +34,9 @@ let bound_sub (a:bound) (b:bound) : bound = match a,b with
 | MINF,PINF | PINF,MINF -> invalid_arg "bound_sub" (* (+∞)- (−∞) *)
 |_-> bound_add a (bound_neg b)
 
+
+
+
 (* a * b *)
 let bound_mul (a:bound) (b:bound) : bound = match a,b with 
 |MINF,PINF|PINF,MINF -> MINF
@@ -102,6 +105,8 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
 
     (* print abstract element *)
     (*    [a;b] [-∞;+∞] [a;+∞] [-∞;b]  *)
+
+
     let print fmt x = match x with
     |BOT -> Format.fprintf fmt "⊥"
     |Itv(x,y)-> match x,y with 
@@ -110,6 +115,12 @@ let bound_max (a:bound) (b:bound) :bound =  if bound_cmp a b <=0  then b  else  
                 |Int i ,PINF -> Format.fprintf fmt "[%s;+∞]" (Z.to_string i)
                 |Int i ,Int j -> Format.fprintf fmt "[%s;%s]" (Z.to_string i) (Z.to_string j)
                 |_-> ()
+
+(*useful in dijonstive domain*)
+  let less_than x y = match x, y with
+  | Int a, Int b -> a < b
+  | MINF, Int b -> true | MINF, PINF -> true| Int a, PINF -> true
+  | _ -> false             
                         
 (* extension of f by f (BOT) = BOT *)
 let lift1 f x = match x with
@@ -251,52 +262,38 @@ let gt a b = match a, b with
     |AST_MULTIPLY -> mul x y 
     |AST_DIVIDE -> div x y
         
-   (*     
-    let shrk x y :t = match x,y with 
-    |Itv(a,b),Itv(c,d) -> Itv((if bound_cmp a MINF =0 then  c else a ), (if bound_cmp b PINF =0 then d else b))
-     |_ -> invalid_arg "nothing to do in shrinken"
-   *)
-
     (* widening, for loops *)
     let widen (x:t) (y:t) :t= match x,y with 
     |BOT,i | i,BOT -> i
     |Itv(a,b),Itv(c,d)->Itv((if bound_cmp a c <=0 then a else MINF),(if bound_cmp b d >=0 then b else PINF))
 
-    let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
-    |AST_EQUAL -> eq x y 
-    |AST_NOT_EQUAL -> neq x y  
-    |AST_GREATER_EQUAL ->   geq x y
-    |AST_GREATER ->  gt x y 
-    |AST_LESS_EQUAL -> leq x y
-    |AST_LESS ->   let y',x' = gt y x in x',y' 
-    
-    let bwd_unary (x:t)  (op:int_unary_op)  (r:t) : t = match op with 
-    |AST_UNARY_PLUS ->  meet x r
-    |AST_UNARY_MINUS-> meet (neg x ) r
+ let compare x y op = match op with
+  | AST_EQUAL         -> eq x y
+  | AST_NOT_EQUAL     -> neq x y
+  | AST_GREATER_EQUAL -> geq x y
+  | AST_GREATER       -> gt x y
+  | AST_LESS_EQUAL    -> let y',x' = geq y x in x',y'
+  | AST_LESS          -> let y',x' = gt y x in x',y'
+        
+  let bwd_unary x op r = match op with
+  | AST_UNARY_PLUS  -> meet x r
+  | AST_UNARY_MINUS -> meet x (neg r)
 
-    let bwd_binary  (x:t)  (y:t) (op:int_binary_op)  (r:t) : (t * t)= match op with 
-      | AST_PLUS ->
+  let bwd_binary x y op r = match op with
+  | AST_PLUS ->
       (* r=x+y => x=r-y and y=r-x *)      
       meet x (sub r y), meet y (sub r x)
-
-      |AST_MINUS ->
+  | AST_MINUS ->
       (* r=x-y => x=y+r and y=x-r *)
       meet x (add y r), meet y (sub x r)
-
-    | AST_MULTIPLY ->
+  | AST_MULTIPLY ->
       (* r=x*y => (x=r/y or y=r=0) and (y=r/x or x=r=0)  *)
       let contains_zero o = subset (const Z.zero) o in
       (if contains_zero y && contains_zero r then x else meet x (div r y)),
       (if contains_zero x && contains_zero r then y else meet y (div r x))
-        
   | AST_DIVIDE ->
-  (* r=x/y => (x=r*y or y=r=0) and (y=r*x or x=r=0)  *)
-    let contains_zero o = subset (const Z.zero) o in
-      (if contains_zero y && contains_zero r then x else meet x (mul r y)),
-      (if contains_zero x && contains_zero r then y else meet y (mul r x))
       (* this is sound, but not precise *)
-  
-
+      x, y
 (****************************)
  let get_value (x:t) (pos:int) : int = match x with 
       |Itv(a,b)-> (let res = if pos=1 then a else b in 
@@ -306,4 +303,5 @@ let gt a b = match a, b with
   |_ -> invalid_arg "interval ?? :-(" 
 (****************************)
 
-end : VALUE_DOMAIN)
+
+end )

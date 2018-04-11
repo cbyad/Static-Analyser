@@ -19,6 +19,12 @@ module IntervalAnalysis =
     (Non_relational_domain.NonRelational
        (Interval_domain.Intervals))
 
+
+       module DijonctiveAnalysis =
+  Interpreter.Interprete
+    (Non_relational_domain.NonRelational
+       (Disjonctive_domain.DisjunctiveIntervals))
+
 (*parity interval reduction*)
 module ParityIntervalsAnalysis =
  Interpreter.Interprete
@@ -67,6 +73,9 @@ let main () =
       Arg.Unit (fun () -> action := ParityIntervalsAnalysis.eval_prog),
      "Use the parity-interval abstract domain";
 
+ "-disjonctive-interval",
+      Arg.Unit (fun () -> action := DijonctiveAnalysis.eval_prog),
+     "Use the disjonctive -interval abstract domain";
     ]
     (* handle filenames *)
     (fun filename -> files := (!files)@[filename])
