@@ -17,7 +17,7 @@ module type VALUE_DOMAIN =
     (* type of abstract elements *)
     (* an element of type t abstracts a set of mathematical integers *)
     type t
-          
+
     (* unrestricted set: [-∞,+∞] *)
     val top: t
         
@@ -47,9 +47,6 @@ module type VALUE_DOMAIN =
     (* print abstract element *)
     val print: Format.formatter -> t -> unit
       
-
-
-        
     (* unary operation *)
     val unary: t -> int_unary_op -> t
 
@@ -103,6 +100,8 @@ module type VALUE_DOMAIN =
       *)
     val bwd_binary: t -> t -> int_binary_op -> t -> (t * t)
   
+    (*I put this here to get access on interval bound from value reduction *)
+    val get_value : t -> int -> int
 end
       
 

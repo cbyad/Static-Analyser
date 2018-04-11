@@ -14,13 +14,14 @@ module ParityIntervalsReduction =(struct
 
     let is_a_part_of (x:Z.t) set :bool = 
         let x_pair = is_even x in match set with 
+            (*Same value define in parity_domain.ml, this is a trick to deal with parity ... we can do better!!*)
             |(-1) -> false
             |2018-> true 
             |2 -> x_pair
             |1 -> not x_pair
-            |_ -> invalid_arg "error "
+            |_ -> invalid_arg "oups "
 
-    
+                
     let reduce ((par,itv):t) : t = 
      if B.is_bottom itv || A.is_bottom par then A.bottom,B.bottom else
         let  a = Z.of_int (B.get_value itv 1) in
@@ -35,6 +36,5 @@ module ParityIntervalsReduction =(struct
                 let new_parity = if is_even a then A.const (Z.of_int 2) else A.const (Z.one) in
                 new_parity,(B.rand a' b')
             else par,(B.rand a' b')
-
 
 end : VALUE_REDUCTION)

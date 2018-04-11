@@ -253,17 +253,17 @@ let gt a b = match a, b with
     |AST_MULTIPLY -> mul x y 
     |AST_DIVIDE -> div x y
         
-    let shrinken x y :t = match x,y with 
+   (*     
+    let shrk x y :t = match x,y with 
     |Itv(a,b),Itv(c,d) -> Itv((if bound_cmp a MINF =0 then  c else a ), (if bound_cmp b PINF =0 then d else b))
      |_ -> invalid_arg "nothing to do in shrinken"
-    
+   *)
+
     (* widening, for loops *)
     let widen (x:t) (y:t) :t= match x,y with 
     |BOT,i | i,BOT -> i
     |Itv(a,b),Itv(c,d)->
         Itv((if bound_cmp a c <=0 then a else MINF),(if bound_cmp b d >=0 then b else PINF))
-
-
 
     let compare  (x:t)  (y:t)  (op:compare_op) : (t * t) = match op with 
     |AST_EQUAL -> eq x y 
@@ -271,7 +271,7 @@ let gt a b = match a, b with
     |AST_GREATER_EQUAL ->   geq x y
     |AST_GREATER ->  gt x y 
     |AST_LESS_EQUAL -> leq x y
-    |AST_LESS ->  let y',x' = gt y x in x',y'
+    |AST_LESS ->   let y',x' = gt y x in x',y' 
     
     let bwd_unary (x:t)  (op:int_unary_op)  (r:t) : t = match op with 
     |AST_UNARY_PLUS ->  meet x r
@@ -305,8 +305,11 @@ let gt a b = match a, b with
       |Itv(a,b)-> (let res = if pos=1 then a else b in 
           match res with 
           |Int c -> Z.to_int c
-          |_ -> invalid_arg "not an int")
-  |_ -> invalid_arg "not an interval" 
+          |_ -> invalid_arg "bound int?? :-(")
+  |_ -> invalid_arg "interval ?? :-(" 
 (****************************)
+
+
+
         
-end : VALUE_DOMAIN)
+end )

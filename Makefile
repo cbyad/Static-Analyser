@@ -79,6 +79,7 @@ MLFILES = \
   $(SRC)/domains/concrete_domain.ml \
   $(SRC)/domains/constant_domain.ml \
   $(SRC)/domains/interval_domain.ml \
+  $(SRC)/domains/disjonctive_domain.ml \
   $(SRC)/domains/parity_domain.ml \
   $(SRC)/domains/value_reduction.ml \
   $(SRC)/domains/value_reduced_product.ml \

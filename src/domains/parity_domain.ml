@@ -188,4 +188,8 @@ module Parity = (struct
 
  (****************************)
 
-end : VALUE_DOMAIN)
+ let get_parity x = match x with |Odd->Odd |Even->Even |_-> invalid_arg "oups"
+
+
+
+end )
